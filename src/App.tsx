@@ -1,6 +1,8 @@
 import './styles/App.css';
 import twitterLogo from './assets/twitter-logo.svg';
 import React, {useEffect, useState} from 'react';
+import {ethers} from 'ethers';
+import myEpicNft from './utils/MyEpicNFT.json';
 
 // Constants
 const TWITTER_HANDLE = 'jwross24';
@@ -21,7 +23,7 @@ function App() {
       console.log('We have the Ethereum object: ', ethereum);
     }
 
-    const accounts = await ethereum.request({method: 'eth_accounts'});
+    const accounts = await ethereum.request!({method: 'eth_accounts'});
 
     if (accounts.length !== 0) {
       const account = accounts[0];
@@ -41,10 +43,39 @@ function App() {
         return;
       }
 
-      const accounts = await ethereum.request({method: 'eth_requestAccounts'});
+      const accounts = await ethereum.request!({method: 'eth_requestAccounts'});
 
       console.log('Connected', accounts[0]);
       setCurrentAccount(accounts[0]);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async function askContractToMintNft() {
+    const CONTRACT_ADDRESS = '0x00Ec477b1e84af24AeA3FD1Dcb7B75DD1F161c7c';
+    try {
+      const {ethereum} = window;
+
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const connectedContract = new ethers.Contract(
+          CONTRACT_ADDRESS,
+          myEpicNft.abi,
+          signer
+        );
+
+        console.log('Going to pop wallet now to pay gas...');
+        const nftTxn = await connectedContract.makeAnEpicNFT();
+
+        console.log('Mining... please wait.');
+        await nftTxn.wait();
+
+        console.log(
+          `Mined, see transaction: https://rinkeby.etherscan.io/tx/${nftTxn.hash}`
+        );
+      }
     } catch (error) {
       console.log(error);
     }
@@ -71,7 +102,7 @@ function App() {
             </button>
           ) : (
             <button
-              onClick={() => {}}
+              onClick={askContractToMintNft}
               className="cta-button connect-wallet-button"
             >
               Mint NFT
