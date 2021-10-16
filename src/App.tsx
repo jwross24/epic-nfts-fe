@@ -62,7 +62,6 @@ function App() {
 
         const mintedSoFar = await connectedContract.getTotalNFTsMintedSoFar();
         setCurrentMinted(mintedSoFar.toNumber());
-        setupEventListener();
       } else {
         console.log("Ethereum object doesn't exist!");
       }
